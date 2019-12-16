@@ -6,6 +6,7 @@ from torch.utils.data.sampler import Sampler
 import sys
 import os.path as osp
 import scipy.io as scio
+import errno
 
 
 class AverageMeter(object):
