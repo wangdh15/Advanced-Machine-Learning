@@ -11,6 +11,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 from PIL import Image
+from sklearn.cluster import AgglomerativeClustering
 
 
 class AverageMeter(object):
@@ -153,26 +154,38 @@ def cluster(net, dataset, batch_size):
     聚类函数
     '''
 
-    # net.eval()
-    # if len(dataset) % batch_size == 0:
-    #     batch_num = len(dataset) / batch_size
-    # else:
-    #     batch_num = int(len(dataset) / batch_size) + 1
-    #
-    # final_result = {}
-    #
-    # for i in range(batch_num):
-    #     images, path_list = dataset.next_batch(batch_size)
-    #     images = Variable(torch.Tensor(images).cuda())
-    #     code, output = net(images)
-    #
-    #     assert output.shape[0] == len(path_list)
-    #     for j in range(len(path_list)):
-    #         final_result[path_list[j]] = output[j]
+    net.eval()
+    if len(dataset) % batch_size == 0:
+        batch_num = len(dataset) / batch_size
+    else:
+        batch_num = int(len(dataset) / batch_size) + 1
+    
+    final_result = {}
+    
+    for i in range(batch_num):
+        images, path_list = dataset.next_batch(batch_size)
+        images = Variable(torch.Tensor(images).cuda())
+        code, output = net(images)
+    
+        assert output.shape[0] == len(path_list)
+        for j in range(len(path_list)):
+            final_result[path_list[j]] = output[j]
 
     # TODO 聚类函数
-
-    result = {1:['data/n0441835700000007.jpg', 'data/n0441835700000015.jpg'],
-              2:['data/n0441835700000115.jpg', 'data/n0441835700000115.jpg']}
+    n_cluster = 0
+    ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
+    image_ids = list(final_result.keys())
+    feature = list(final_result.values())
+    feature = torch.cat([f.view(1, -1) for f in feature], 0)
+    labels = ac.fit_predict(feature)
+    result = {}
+    for ind, image in enumerate(image_ids):
+        k = labels[ind]
+        if k in result.keys():
+            result[k].append(image)
+        else:
+            result[k] = [image]
+#     result = {1:['data/n0441835700000007.jpg', 'data/n0441835700000015.jpg'],
+#               2:['data/n0441835700000115.jpg', 'data/n0441835700000115.jpg']}
 
     return result
