@@ -1,6 +1,6 @@
 from __future__ import absolute_import
-from .dataloader import Imagenet_data
+from .dataloader import data_loader
 
 __all__ = [
-    'Imagenet_data',
+    'data_loader',
 ]

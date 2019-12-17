@@ -7,6 +7,10 @@ import sys
 import os.path as osp
 import scipy.io as scio
 import errno
+import torch
+from torch.autograd import Variable
+import torch.nn as nn
+from PIL import Image
 
 
 class AverageMeter(object):
@@ -75,3 +79,100 @@ class Logger(object):
         if self.file is not None:
             self.file.close()
 
+
+class pk_sampler:
+
+    def __init__(self, cluster_result, p, k, config):
+
+        self.config = config
+        self.data_source = cluster_result
+        self.cls = list(cluster_result.keys())
+        self.p = p
+        self.k = k
+
+
+    def next_batch(self):
+        '''
+        数据采样
+        '''
+        result = []
+        target = []
+        cls_sampled  = np.random.choice(self.cls, size=self.p, replace=False)
+        for index, _cls in enumerate(cls_sampled):
+            if len(self.data_source[_cls]) < self.k:
+                data_sampled = np.random.choice(self.data_source[_cls], self.k, replace=True)
+            else:
+                data_sampled = np.random.choice(self.data_source[_cls], self.k, replace=False)
+
+            result.extend(data_sampled)
+            target.extend([index] * self.k)
+        result = [self.config.transform_train(np.array(Image.open(x).resize((224, 224), Image.ANTIALIAS))) for x in result]
+        assert  len(result) == self.p * self.k
+        return tuple(result), np.array(target).reshape(-1, 1)
+
+    def __len__(self):
+        return self.p * self.k
+
+
+class TripletLoss(nn.Module):
+    def __init__(self, margin=0):
+        super(TripletLoss, self).__init__()
+        self.margin = margin
+        self.ranking_loss = nn.MarginRankingLoss(margin=margin)
+
+    def forward(self, inputs, targets):
+        '''
+        计算输入数据的triplets loss
+        target 是每一行数据属于的label
+        '''
+        n = inputs.size(0)
+        # Compute pairwise distance, replace by the official when merged
+        dist = torch.pow(inputs, 2).sum(dim=1, keepdim=True).expand(n, n)
+        dist = dist + dist.t()
+        dist.addmm_(1, -2, inputs, inputs.t())
+        dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
+        # For each anchor, find the hardest positive and negative
+        mask = targets.expand(n, n).eq(targets.expand(n, n).t())
+        dist_ap, dist_an = [], []
+        for i in range(n):
+            dist_ap.append(dist[i][mask[i]].max())
+            dist_an.append(dist[i][mask[i] == 0].min())
+        dist_ap = torch.stack(tuple(dist_ap))
+        dist_an = torch.stack(tuple(dist_an))
+        # Compute ranking hinge loss
+        y = dist_an.data.new()
+        y.resize_as_(dist_an.data)
+        y.fill_(1)
+        y = Variable(y)
+        loss = self.ranking_loss(dist_an, dist_ap, y)
+        prec = (dist_an.data > dist_ap.data).sum() * 1. / y.size(0)
+        return loss, prec
+
+def cluster(net, dataset, batch_size):
+    '''
+    聚类函数
+    '''
+
+    # net.eval()
+    # if len(dataset) % batch_size == 0:
+    #     batch_num = len(dataset) / batch_size
+    # else:
+    #     batch_num = int(len(dataset) / batch_size) + 1
+    #
+    # final_result = {}
+    #
+    # for i in range(batch_num):
+    #     images, path_list = dataset.next_batch(batch_size)
+    #     images = Variable(torch.Tensor(images).cuda())
+    #     code, output = net(images)
+    #
+    #     assert output.shape[0] == len(path_list)
+    #     for j in range(len(path_list)):
+    #         final_result[path_list[j]] = output[j]
+
+    # TODO 聚类函数
+
+    result = {1:['data/n0441835700000007.jpg', 'data/n0441835700000015.jpg'],
+              2:['data/n0441835700000115.jpg', 'data/n0441835700000115.jpg']}
+
+    return result

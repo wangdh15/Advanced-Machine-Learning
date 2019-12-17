@@ -25,9 +25,12 @@ lr = 0.01   # learning rate
 model_path = "save_model/"   # model save path
 if not os.path.isdir(model_path):
     os.makedirs(model_path)
-resume = 'miniImagenet_epoch_80.t'   # resume from checkpoint
-if not os.path.exists(os.path.join(model_path, resume)):
-    resume = ""
+resume_net1 = 'miniImagenet_epoch_80.t'   # resume from checkpoint
+if not os.path.exists(os.path.join(model_path, resume_net1)):
+    resume_net1 = ""
+resume_net2 = 'miniImagenet_epoch_80.t'   # resume from checkpoint
+if not os.path.exists(os.path.join(model_path, resume_net2)):
+    resume_net2 = ""
 
 
 save_epoch = 10    # save model every 10 epoch
@@ -38,4 +41,14 @@ if not os.path.isdir(log_path):
 batch_size = 32  # training batch size
 workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
+iter_num = 10
 gpu='2'  # visible gpu
+iter_each_net = 200
+lambda_1 = 0.5
+lambda_2 = 0.5
+
+# ----------------------------
+# config for pk sample
+
+p = 2
+k = 1
