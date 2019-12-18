@@ -164,7 +164,8 @@ def cluster(net, dataset, batch_size):
     
     for i in range(batch_num):
         images, path_list = dataset.next_batch(batch_size)
-        images = Variable(torch.Tensor(images).cuda())
+        images = Variable(torch.stack(images).cuda())
+        # images = Variable(torch.Tensor(images).cuda())
         code, output = net(images)
     
         assert output.shape[0] == len(path_list)

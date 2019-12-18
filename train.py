@@ -217,6 +217,7 @@ def train(config):
     end = time.time()
 
     file_list = os.listdir(config.data_dir)
+    file_list = [ os.path.join(config.data_dir, x) for x in file_list]
     file_list_1 = np.random.choice(file_list, int(len(file_list)/2), replace=False)
     file_list_2 = [ x for x in file_list if x  not in file_list_1]
     dataset_all = data_loader(file_list, config)
