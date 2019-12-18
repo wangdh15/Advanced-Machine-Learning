@@ -12,6 +12,7 @@ from torch.autograd import Variable
 import torch.nn as nn
 from PIL import Image
 from sklearn.cluster import AgglomerativeClustering
+from tqdm import tqdm
 
 
 class AverageMeter(object):
@@ -149,7 +150,7 @@ class TripletLoss(nn.Module):
         prec = (dist_an.data > dist_ap.data).sum() * 1. / y.size(0)
         return loss, prec
 
-def cluster(net, dataset, batch_size):
+def cluster(net, dataset, batch_size, net_num, outIter_num):
     '''
     聚类函数
     '''
@@ -163,8 +164,9 @@ def cluster(net, dataset, batch_size):
     feat = np.zeros((len(dataset), 2048))
     image_name = []
     flag = 0
+    print("==> compute feature using net{} , outIter {}".format(net_num, outIter_num))
     with torch.no_grad():
-        for i in range(batch_num):
+        for i in tqdm(range(batch_num)):
             images, path_list = dataset.next_batch(batch_size)
             images = Variable(torch.stack(images).cuda())
             # images = Variable(torch.Tensor(images).cuda())
@@ -183,8 +185,7 @@ def cluster(net, dataset, batch_size):
     n_cluster = 10
     ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
     labels = ac.fit_predict(feat)
-    print(len(labels))
-    print(len(image_name))
+    assert len(labels) == len(image_name)
     result = {}
     for i in range(len(labels)):
         if labels[i] not in result.keys():

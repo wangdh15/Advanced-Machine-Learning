@@ -19,7 +19,8 @@ transform_train = transforms.Compose([
 ])
 # data_dir = "data/"
 # data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
-data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
+# data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
+data_dir = 'data/debug_dataset'
 
 # ----------------------------
 # config for trainer
@@ -44,7 +45,7 @@ batch_size = 32  # training batch size
 workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 10
-gpu='0,1,2,3'  # visible gpu
+gpu='2'  # visible gpu
 iter_each_net = 200
 lambda_1 = 0.5
 lambda_2 = 0.5
@@ -52,5 +53,5 @@ lambda_2 = 0.5
 # ----------------------------
 # config for pk sample
 
-p = 2
-k = 1
+p = 4
+k = 8

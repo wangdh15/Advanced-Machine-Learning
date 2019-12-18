@@ -126,7 +126,7 @@ class data_loader:
 
     def next_batch(self, batch_size):
         if self.batch_start_index + batch_size >= len(self.file_list):
-            path_list = self.file_list[self.batch_start_index :-1]
+            path_list = self.file_list[self.batch_start_index:]
             self.batch_start_index = 0
         else:
             path_list = self.file_list[self.batch_start_index:self.batch_start_index+batch_size]

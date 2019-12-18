@@ -141,16 +141,20 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
     '''
     训练单个模型的过程
     '''
+    print("==> train net {} outIter {}".format(net_num, _iter))
     train_loss = AverageMeter()
     data_time = AverageMeter()
     batch_time = AverageMeter()
+    MSE_loss = AverageMeter()
+    Tri_loss = AverageMeter()
+
     sampler = pk_sampler(cluster_result, config.p, config.k, config)
     criterion1 = nn.MSELoss()
     criterion2 = TripletLoss()
 
     net.train()
 
-    for batchid in range(config.iter_each_net):
+    for batchid in range(1, config.iter_each_net+1):
 
 
         end = time.time()
@@ -172,10 +176,13 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
         loss = lambda_1 * loss1 +lambda_2 * loss2
         current_lr = adjust_learning_rate(optimizer, batchid)
 
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         train_loss.update(loss.item(), data.size(0))
+        MSE_loss.update(loss1.item(), data.size(0))
+        Tri_loss.update(loss2.item(), data.size(0))
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
@@ -186,11 +193,14 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
                   'Data: {data_time.val:.3f} ({data_time.avg:.3f}) '
                   'lr:{} '
                   'Loss: {train_loss.val:.4f} ({train_loss.avg:.4f}) '
+                  'Loss_MSE: {MSE_loss.val:.4f} ({MSE_loss.avg:.4f}) '
+                  'Loss_Tri: {Tri_loss.val:.4f} ({Tri_loss.avg:.4f}) '
                   .format( net_num, _iter, batchid, config.iter_each_net , current_lr, batch_time=batch_time,
-                          data_time=data_time, train_loss=train_loss))
+                          data_time=data_time, train_loss=train_loss,
+                           MSE_loss=MSE_loss, Tri_loss=Tri_loss))
 
         # 一定的batch_id存储模型
-        if batchid > 0 and batchid % 100 == 0:
+        if batchid % 100 == 0:
             print('Save model OutIter: {}  batchId : {}'.format( _iter,batchid))
             state = {
                 'net': net.state_dict(),
@@ -212,7 +222,7 @@ def train(config):
     checkpoint_path = config.model_path
     suffix = dataset
     sys.stdout = Logger(log_path + suffix + '_os.txt')
-    outIter = 0
+    outIter = 1
     print('==> Loading data..')
     end = time.time()
 
@@ -274,10 +284,10 @@ def train(config):
 
     # training
     print('==> Start Training...')
-    for _iter in range(outIter, config.iter_num):
-        cluster_result = cluster(net1, dataset_2 , 64)
+    for _iter in range(outIter, config.iter_num+1):
+        cluster_result = cluster(net1, dataset_2 , 64, 1, _iter)
         train_signal_model(net2, cluster_result, config, optimizer2, _iter, 2)
-        cluster_result = cluster(net2, dataset_1, 64)
+        cluster_result = cluster(net2, dataset_1, 64, 2, _iter)
         train_signal_model(net1, cluster_result, config, optimizer1, _iter, 1)
 
 
