@@ -185,7 +185,8 @@ def cluster(net, dataset, batch_size, net_num, outIter_num, config):
     print('features have been extracted')
     print('Begin clustering')
     # TODO 聚类函数
-    n_cluster = 100
+    # n_cluster = 100
+    n_cluster = config.n_cluster
     end = time.time()
     # n_cluster = 10
     ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')

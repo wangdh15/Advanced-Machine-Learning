@@ -19,9 +19,9 @@ os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu
 
 def adjust_learning_rate(optimizer,epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    if epoch < 50:
+    if epoch <= 10:
         lr = config.lr
-    elif epoch >= 50 and epoch < 80:
+    elif epoch <=20:
         lr = config.lr * 0.1
     else:
         lr = config.lr * 0.05
@@ -29,14 +29,14 @@ def adjust_learning_rate(optimizer,epoch):
     return lr
 
 
-def adjust_lambda(batch_id, batch_num):
+def adjust_lambda(outIter):
     '''
     adjust the lambda
     '''
-    if batch_id < 0.3 * batch_num:
+    if outIter <= 2:
         lambda_1 = 0.8
         lambda_2 = 0.2
-    elif epoch < 0.6 * batch_num:
+    elif outIter <= 4:
         lambda_1 = 0.5
         lambda_2 = 0.5
     else:
@@ -142,76 +142,78 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
     训练单个模型的过程
     '''
     print("==> train net {} outIter {}".format(net_num, _iter))
-    train_loss = AverageMeter()
-    data_time = AverageMeter()
-    batch_time = AverageMeter()
-    MSE_loss = AverageMeter()
-    Tri_loss = AverageMeter()
+    lambda_1, lambda_2 = adjust_lambda(_iter)
+    for _epoch in range(1, config.epoch+1):
+        train_loss = AverageMeter()
+        data_time = AverageMeter()
+        batch_time = AverageMeter()
+        MSE_loss = AverageMeter()
+        Tri_loss = AverageMeter()
 
-    sampler = pk_sampler(cluster_result, config.p, config.k, config)
-    criterion1 = nn.MSELoss()
-    criterion2 = TripletLoss(config.margin)
+        sampler = pk_sampler(cluster_result, config.p, config.k, config)
+        criterion1 = nn.MSELoss()
+        criterion2 = TripletLoss(config.margin)
+        # 每次训练单个网络的时候根据epoch数目来跟新学习率
+        current_lr = adjust_learning_rate(optimizer, _epoch)
 
-    net.train()
-    batch_num = int(config.epoch *  30000 / ( config.p  * config.k))
-    for batchid in range(1, batch_num +1):
-
-
-        end = time.time()
-        data, target = sampler.next_batch()
-        data_time.update(time.time() - end)
-
-        data = Variable(torch.stack(data).cuda())
-
-        target = Variable(torch.Tensor(target).cuda())
-
-        code, output = net(data)
-
-        code = code.view(code.shape[0], -1)
-        # 根据迭代次数调整loss的比例以及学习率
-        lambda_1, lambda_2 = adjust_lambda(batchid, batch_num)
-
-        loss1 = criterion1(data, output)
-        loss2, _ = criterion2(code, target)
-        loss = lambda_1 * loss1 +lambda_2 * loss2
-        epoch_now = int(batch_id / (batch_num / config.epoch)) + 1
-        current_lr = adjust_learning_rate(optimizer, epoch)
+        net.train()
+        # batch_num = int (600 / (config.p * config.k))
+        batch_num = int (3000 / (config.p * config.k))
+        # batch_num = 10
+        for batchid in range(1, batch_num +1):
 
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        train_loss.update(loss.item(), data.size(0))
-        MSE_loss.update(loss1.item(), data.size(0))
-        Tri_loss.update(loss2.item(), data.size(0))
-        # measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
-        if batchid % 10 == 0:
-            print('net: {} '
-                  'OutIter:{} '
-                  'Epoch: [{}][{}/{}] '
-                  'Time: {batch_time.val:.3f} ({batch_time.avg:.3f}) '
-                  'Data: {data_time.val:.3f} ({data_time.avg:.3f}) '
-                  'lr:{} '
-                  'lambda1:{} '
-                  'lambda2:{} '
-                  'Loss: {train_loss.val:.4f} ({train_loss.avg:.4f}) '
-                  'Loss_MSE: {MSE_loss.val:.4f} ({MSE_loss.avg:.4f}) '
-                  'Loss_Tri: {Tri_loss.val:.4f} ({Tri_loss.avg:.4f}) '
-                  .format( net_num, _iter, epoch, batchid, batch_num , current_lr, lambda_1, lambda_2, batch_time=batch_time,
-                          data_time=data_time, train_loss=train_loss,
-                           MSE_loss=MSE_loss, Tri_loss=Tri_loss))
+            end = time.time()
+            data, target = sampler.next_batch()
+            data_time.update(time.time() - end)
+
+            data = Variable(torch.stack(data).cuda())
+
+            target = Variable(torch.Tensor(target).cuda())
+
+            code, output = net(data)
+
+            code = code.view(code.shape[0], -1)
+
+            loss1 = criterion1(data, output)
+            loss2, _ = criterion2(code, target)
+            loss = lambda_1 * loss1 +lambda_2 * loss2
+
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_loss.update(loss.item(), data.size(0))
+            MSE_loss.update(loss1.item(), data.size(0))
+            Tri_loss.update(loss2.item(), data.size(0))
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+            if batchid % 10 == 0:
+                print('net: {} '
+                      'OutIter:{} '
+                      'Epoch: [{}][{}/{}] '
+                      'Time: {batch_time.val:.3f} ({batch_time.avg:.3f}) '
+                      'Data: {data_time.val:.3f} ({data_time.avg:.3f}) '
+                      'lr:{} '
+                      'lambda1:{} '
+                      'lambda2:{} '
+                      'Loss: {train_loss.val:.4f} ({train_loss.avg:.4f}) '
+                      'Loss_MSE: {MSE_loss.val:.4f} ({MSE_loss.avg:.4f}) '
+                      'Loss_Tri: {Tri_loss.val:.4f} ({Tri_loss.avg:.4f}) '
+                      .format( net_num, _iter, _epoch, batchid, batch_num , current_lr, lambda_1, lambda_2, batch_time=batch_time,
+                              data_time=data_time, train_loss=train_loss,
+                               MSE_loss=MSE_loss, Tri_loss=Tri_loss))
 
         # 一定的batch_id存储模型
-        if batchid % 100 == 0:
-            print('Save model OutIter: {}  batchId : {}'.format( _iter,batchid))
+        if _epoch % config.save_epoch == 0:
+            print('Save model OutIter: {}  epoch : {}'.format( _iter,_epoch))
             state = {
                 'net': net.state_dict(),
                 'outIter' : _iter,
-                'batchid': batchid,
+                'epoch': _epoch,
             }
-            torch.save(state, config.model_path + '_net_{}_outIter_{}_batchid_{}.t'.format(net_num, _iter,batchid))
+            torch.save(state, config.model_path + '_net_{}_outIter_{}_epoch_{}.t'.format(net_num, _iter,_epoch))
 
 
 def train(config):

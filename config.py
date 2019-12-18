@@ -19,8 +19,8 @@ transform_train = transforms.Compose([
 ])
 # data_dir = "data/"
 # data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
-data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
-# data_dir = 'data/debug_dataset'
+# data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
+data_dir = 'data/debug_dataset'
 
 # ----------------------------
 # config for trainer
@@ -41,21 +41,28 @@ log_path = "log/"   # log save path
 if not os.path.isdir(log_path):
     os.makedirs(log_path)
 
+
+epoch = 30
 # batch_size = 32  # training batch size
 workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
-iter_num = 10
-gpu='0,1,2,3'  # visible gpu
-iter_each_net = 200
-lambda_1 = 0.5
-lambda_2 = 0.5
+iter_num = 6
+gpu='2'  # visible gpu
+# lambda_1 = 0.5
+# lambda_2 = 0.5
 cluster_batch_size = 256
 cluster_result_dir = "cluster_result/"
 if not os.path.isdir(cluster_result_dir):
     os.makedirs(cluster_result_dir)
+
+# debug setting
+# n_cluster = 10
+# run setting
+n_cluster = 100
 # ----------------------------
 # config for pk sample
 # 单张卡大概可以跑80张图（16G显存）
+# run setting
 p = 30
 k = 10
 
