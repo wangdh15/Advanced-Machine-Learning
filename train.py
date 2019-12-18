@@ -285,9 +285,9 @@ def train(config):
     # training
     print('==> Start Training...')
     for _iter in range(outIter, config.iter_num+1):
-        cluster_result = cluster(net1, dataset_2 , 64, 1, _iter)
+        cluster_result = cluster(net1, dataset_2 , config.cluster_batch_size, 1, _iter)
         train_signal_model(net2, cluster_result, config, optimizer2, _iter, 2)
-        cluster_result = cluster(net2, dataset_1, 64, 2, _iter)
+        cluster_result = cluster(net2, dataset_1, config.cluster_batch_size, 2, _iter)
         train_signal_model(net1, cluster_result, config, optimizer1, _iter, 1)
 
 

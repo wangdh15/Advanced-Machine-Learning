@@ -13,7 +13,7 @@ import torch.nn as nn
 from PIL import Image
 from sklearn.cluster import AgglomerativeClustering
 from tqdm import tqdm
-
+import time
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -180,11 +180,14 @@ def cluster(net, dataset, batch_size, net_num, outIter_num):
             flag += tmp
             image_name.extend(path_list)
     print('features have been extracted')
+    print('Begin clustering')
     # TODO 聚类函数
-    # n_cluster = 100
-    n_cluster = 10
+    n_cluster = 100
+    end = time.time()
+    # n_cluster = 10
     ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
     labels = ac.fit_predict(feat)
+    print('cluster end. time spend:{}'.format(time.time() - end))
     assert len(labels) == len(image_name)
     result = {}
     for i in range(len(labels)):

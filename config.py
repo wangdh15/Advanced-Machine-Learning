@@ -18,9 +18,9 @@ transform_train = transforms.Compose([
     normalize,
 ])
 # data_dir = "data/"
-# data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
+data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
 # data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
-data_dir = 'data/debug_dataset'
+# data_dir = 'data/debug_dataset'
 
 # ----------------------------
 # config for trainer
@@ -45,13 +45,13 @@ batch_size = 32  # training batch size
 workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 10
-gpu='2'  # visible gpu
+gpu='0,1,2,3'  # visible gpu
 iter_each_net = 200
 lambda_1 = 0.5
 lambda_2 = 0.5
-
+cluster_batch_size = 256
 # ----------------------------
 # config for pk sample
-
-p = 4
-k = 8
+# 单张卡大概可以跑80张图（16G显存）
+p = 10
+k = 30
