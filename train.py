@@ -17,7 +17,7 @@ import config
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu
 
 
-def adjust_learning_rate(optimizer, epoch):
+def adjust_learning_rate(optimizer,epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     if epoch < 50:
         lr = config.lr
@@ -29,19 +29,19 @@ def adjust_learning_rate(optimizer, epoch):
     return lr
 
 
-def adjust_lambda(epoch):
+def adjust_lambda(batch_id, batch_num):
     '''
     adjust the lambda
     '''
-    if epoch < 50:
-        lambda_1 = 0.9
-        lambda_2 = 0.1
-    elif epoch >= 50 and epoch < 80:
+    if batch_id < 0.3 * batch_num:
+        lambda_1 = 0.8
+        lambda_2 = 0.2
+    elif epoch < 0.6 * batch_num:
         lambda_1 = 0.5
         lambda_2 = 0.5
     else:
-        lambda_1 = 0.1
-        lambda_2 = 0.9
+        lambda_1 = 0.2
+        lambda_2 = 0.8
     return lambda_1, lambda_2
 
 
@@ -150,11 +150,11 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
 
     sampler = pk_sampler(cluster_result, config.p, config.k, config)
     criterion1 = nn.MSELoss()
-    criterion2 = TripletLoss()
+    criterion2 = TripletLoss(config.margin)
 
     net.train()
-
-    for batchid in range(1, config.iter_each_net+1):
+    batch_num = int(config.epoch *  30000 / ( config.p  * config.k))
+    for batchid in range(1, batch_num +1):
 
 
         end = time.time()
@@ -169,12 +169,13 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
 
         code = code.view(code.shape[0], -1)
         # 根据迭代次数调整loss的比例以及学习率
-        lambda_1, lambda_2 = adjust_lambda(batchid)
+        lambda_1, lambda_2 = adjust_lambda(batchid, batch_num)
 
         loss1 = criterion1(data, output)
         loss2, _ = criterion2(code, target)
         loss = lambda_1 * loss1 +lambda_2 * loss2
-        current_lr = adjust_learning_rate(optimizer, batchid)
+        epoch_now = int(batch_id / (batch_num / config.epoch)) + 1
+        current_lr = adjust_learning_rate(optimizer, epoch)
 
 
         optimizer.zero_grad()
@@ -188,14 +189,17 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
         end = time.time()
         if batchid % 10 == 0:
             print('net: {} '
+                  'OutIter:{} '
                   'Epoch: [{}][{}/{}] '
                   'Time: {batch_time.val:.3f} ({batch_time.avg:.3f}) '
                   'Data: {data_time.val:.3f} ({data_time.avg:.3f}) '
                   'lr:{} '
+                  'lambda1:{} '
+                  'lambda2:{} '
                   'Loss: {train_loss.val:.4f} ({train_loss.avg:.4f}) '
                   'Loss_MSE: {MSE_loss.val:.4f} ({MSE_loss.avg:.4f}) '
                   'Loss_Tri: {Tri_loss.val:.4f} ({Tri_loss.avg:.4f}) '
-                  .format( net_num, _iter, batchid, config.iter_each_net , current_lr, batch_time=batch_time,
+                  .format( net_num, _iter, epoch, batchid, batch_num , current_lr, lambda_1, lambda_2, batch_time=batch_time,
                           data_time=data_time, train_loss=train_loss,
                            MSE_loss=MSE_loss, Tri_loss=Tri_loss))
 
@@ -207,7 +211,7 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
                 'outIter' : _iter,
                 'batchid': batchid,
             }
-            torch.save(state, config.model_path + '_net_{}' + '_batchid_{}.t'.format(net_num,batchid))
+            torch.save(state, config.model_path + '_net_{}_outIter_{}_batchid_{}.t'.format(net_num, _iter,batchid))
 
 
 def train(config):
@@ -285,9 +289,9 @@ def train(config):
     # training
     print('==> Start Training...')
     for _iter in range(outIter, config.iter_num+1):
-        cluster_result = cluster(net1, dataset_2 , config.cluster_batch_size, 1, _iter)
+        cluster_result = cluster(net1, dataset_2 , config.cluster_batch_size, 1, _iter, config)
         train_signal_model(net2, cluster_result, config, optimizer2, _iter, 2)
-        cluster_result = cluster(net2, dataset_1, config.cluster_batch_size, 2, _iter)
+        cluster_result = cluster(net2, dataset_1, config.cluster_batch_size, 2, _iter, config)
         train_signal_model(net1, cluster_result, config, optimizer1, _iter, 1)
 
 

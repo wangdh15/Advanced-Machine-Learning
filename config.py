@@ -18,8 +18,8 @@ transform_train = transforms.Compose([
     normalize,
 ])
 # data_dir = "data/"
-data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
-# data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
+# data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
+data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
 # data_dir = 'data/debug_dataset'
 
 # ----------------------------
@@ -28,20 +28,20 @@ lr = 0.01   # learning rate
 model_path = "save_model/"   # model save path
 if not os.path.isdir(model_path):
     os.makedirs(model_path)
-resume_net1 = 'miniImagenet_epoch_80.t'   # resume from checkpoint
+resume_net1 = 'miniImagenet_epoch_100.t'   # resume from checkpoint
 if not os.path.exists(os.path.join(model_path, resume_net1)):
     resume_net1 = ""
-resume_net2 = 'miniImagenet_epoch_80.t'   # resume from checkpoint
+resume_net2 = 'miniImagenet_epoch_100.t'   # resume from checkpoint
 if not os.path.exists(os.path.join(model_path, resume_net2)):
     resume_net2 = ""
 
-
+margin = 1
 save_epoch = 10    # save model every 10 epoch
 log_path = "log/"   # log save path
 if not os.path.isdir(log_path):
     os.makedirs(log_path)
 
-batch_size = 32  # training batch size
+# batch_size = 32  # training batch size
 workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 10
@@ -50,8 +50,15 @@ iter_each_net = 200
 lambda_1 = 0.5
 lambda_2 = 0.5
 cluster_batch_size = 256
+cluster_result_dir = "cluster_result/"
+if not os.path.isdir(cluster_result_dir):
+    os.makedirs(cluster_result_dir)
 # ----------------------------
 # config for pk sample
 # 单张卡大概可以跑80张图（16G显存）
-p = 10
-k = 30
+p = 30
+k = 10
+
+# debug setting
+# p = 2
+# k = 5

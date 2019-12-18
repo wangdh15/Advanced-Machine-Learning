@@ -14,6 +14,9 @@ from PIL import Image
 from sklearn.cluster import AgglomerativeClustering
 from tqdm import tqdm
 import time
+import json
+import pickle
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -150,7 +153,7 @@ class TripletLoss(nn.Module):
         prec = (dist_an.data > dist_ap.data).sum() * 1. / y.size(0)
         return loss, prec
 
-def cluster(net, dataset, batch_size, net_num, outIter_num):
+def cluster(net, dataset, batch_size, net_num, outIter_num, config):
     '''
     聚类函数
     '''
@@ -198,4 +201,7 @@ def cluster(net, dataset, batch_size, net_num, outIter_num):
 #     result = {1:['data/n0441835700000007.jpg', 'data/n0441835700000015.jpg'],
 #               2:['data/n0441835700000115.jpg', 'data/n0441835700000115.jpg']}
 
+    with open(os.path.join(config.cluster_result_dir, 'cluster_result_{}_{}.json'.format(net_num, outIter_num)), 'wb') as f:
+        pickle.dump(result, f)
+    print('cluster result is saved to cluster_result_{}_{}.json'.format(net_num, outIter_num))
     return result
