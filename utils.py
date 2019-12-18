@@ -172,11 +172,12 @@ def cluster(net, dataset, batch_size):
             final_result[path_list[j]] = output[j]
 
     # TODO 聚类函数
-    n_cluster = 0
+    n_cluster = 100
     ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
     image_ids = list(final_result.keys())
     feature = list(final_result.values())
     feature = torch.cat([f.view(1, -1) for f in feature], 0)
+    feature = feature.cpu().numpy()
     labels = ac.fit_predict(feature)
     result = {}
     for ind, image in enumerate(image_ids):
