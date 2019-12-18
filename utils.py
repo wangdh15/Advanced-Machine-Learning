@@ -153,40 +153,44 @@ def cluster(net, dataset, batch_size):
     '''
     聚类函数
     '''
-
+    avgpool = nn.AvgPool2d(7,7)
     net.eval()
     if len(dataset) % batch_size == 0:
         batch_num = len(dataset) / batch_size
     else:
         batch_num = int(len(dataset) / batch_size) + 1
     
-    final_result = {}
+    feat = np.zeros((len(dataset), 2048))
+    image_name = []
+    flag = 0
+    with torch.no_grad():
+        for i in range(batch_num):
+            images, path_list = dataset.next_batch(batch_size)
+            images = Variable(torch.stack(images).cuda())
+            # images = Variable(torch.Tensor(images).cuda())
+            code, output = net(images)
+            code = avgpool(code)
     
-    for i in range(batch_num):
-        images, path_list = dataset.next_batch(batch_size)
-        images = Variable(torch.stack(images).cuda())
-        # images = Variable(torch.Tensor(images).cuda())
-        code, output = net(images)
-    
-        assert output.shape[0] == len(path_list)
-        for j in range(len(path_list)):
-            final_result[path_list[j]] = output[j]
-
+            assert output.shape[0] == len(path_list)
+            
+            tmp = code.shape[0]
+            feat[flag:flag+tmp, :] = code.view(tmp,-1).detach().cpu().numpy()
+            flag += tmp
+            image_name.extend(path_list)
+    print('features have been extracted')
     # TODO 聚类函数
-    n_cluster = 100
+    # n_cluster = 100
+    n_cluster = 10
     ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
-    image_ids = list(final_result.keys())
-    feature = list(final_result.values())
-    feature = torch.cat([f.view(1, -1) for f in feature], 0)
-    feature = feature.cpu().numpy()
-    labels = ac.fit_predict(feature)
+    labels = ac.fit_predict(feat)
+    print(len(labels))
+    print(len(image_name))
     result = {}
-    for ind, image in enumerate(image_ids):
-        k = labels[ind]
-        if k in result.keys():
-            result[k].append(image)
+    for i in range(len(labels)):
+        if labels[i] not in result.keys():
+             result[labels[i]] = [image_name[i]]
         else:
-            result[k] = [image]
+             result[labels[i]].append(image_name[i])
 #     result = {1:['data/n0441835700000007.jpg', 'data/n0441835700000015.jpg'],
 #               2:['data/n0441835700000115.jpg', 'data/n0441835700000115.jpg']}
 
