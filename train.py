@@ -32,16 +32,12 @@ def adjust_learning_rate(optimizer,epoch):
 def adjust_lambda(outIter):
     '''
     adjust the lambda
+    固定encoder的loss不变
+    逐渐增大lambda_2，提高Trip Loss占的比重
     '''
-    if outIter <= 2:
-        lambda_1 = 0.8
-        lambda_2 = 0.2
-    elif outIter <= 4:
-        lambda_1 = 0.5
-        lambda_2 = 0.5
-    else:
-        lambda_1 = 0.2
-        lambda_2 = 0.8
+
+    lambda_1 = 1
+    lambda_2 = 0.1 * outIter
     return lambda_1, lambda_2
 
 
@@ -154,11 +150,12 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
         criterion1 = nn.MSELoss()
         criterion2 = TripletLoss(config.margin)
         # 每次训练单个网络的时候根据epoch数目来跟新学习率
-        current_lr = adjust_learning_rate(optimizer, _epoch)
+        # current_lr = adjust_learning_rate(optimizer, _epoch)
+        current_lr = config.lr
 
         net.train()
-        # batch_num = int (600 / (config.p * config.k))
-        batch_num = int (30000 / (config.p * config.k))
+        batch_num = int (100 / (config.p * config.k))
+        # batch_num = int (30000 / (config.p * config.k))
         # batch_num = 10
         for batchid in range(1, batch_num +1):
 

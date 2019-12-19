@@ -16,6 +16,7 @@ from tqdm import tqdm
 import time
 import json
 import pickle
+from kMeans import cluster as cluster_1
 
 
 class AverageMeter(object):
@@ -189,8 +190,12 @@ def cluster(net, dataset, batch_size, net_num, outIter_num, config):
     n_cluster = config.n_cluster
     end = time.time()
     # n_cluster = 10
-    ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
-    labels = ac.fit_predict(feat)
+    # ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
+    # labels = ac.fit_predict(feat)
+
+    data = torch.from_numpy(feat.astype(np.float32)).cuda()
+    centers, labels = cluster_1(data, n_cluster)
+    labels = labels.detach().cpu().numpy()
     print('cluster end. time spend:{}'.format(time.time() - end))
     assert len(labels) == len(image_name)
     result = {}

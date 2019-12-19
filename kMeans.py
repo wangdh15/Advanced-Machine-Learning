@@ -3,6 +3,9 @@ import numpy as np
 import random
 import sys
 import time
+import os
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 device_gpu = torch.device('cuda')
 device_cpu = torch.device('cpu')
 
@@ -93,7 +96,7 @@ def cluster(dataset, num_centers):
 
 if __name__ == '__main__':
     n = 30000
-    d = 2048*7*7
+    d = 2048
     num_centers = 100
     # It's (much) better to use 32-bit floats, for the sake of performance
     dataset_numpy = np.random.randn(n, d).astype(np.float32)
@@ -101,5 +104,7 @@ if __name__ == '__main__':
     print('Starting clustering')
     begin_time = time.time()
     centers, codes = cluster(dataset, num_centers)
+    codes = codes.detach().cpu().numpy()
     print("time consume:{}".format(time.time() - begin_time))
     print(codes)
+    print(codes.shape)
