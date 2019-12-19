@@ -18,9 +18,9 @@ transform_train = transforms.Compose([
     normalize,
 ])
 # data_dir = "data/"
-# data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
+data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
 # data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
-data_dir = 'data/debug_dataset'
+# data_dir = 'data/debug_dataset'
 
 # ----------------------------
 # config for trainer
@@ -47,10 +47,10 @@ epoch = 30
 workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 6
-gpu='2'  # visible gpu
+gpu='0,1,2,3'  # visible gpu
 # lambda_1 = 0.5
 # lambda_2 = 0.5
-cluster_batch_size = 256
+cluster_batch_size = 2048
 cluster_result_dir = "cluster_result/"
 if not os.path.isdir(cluster_result_dir):
     os.makedirs(cluster_result_dir)

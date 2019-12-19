@@ -158,7 +158,7 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
 
         net.train()
         # batch_num = int (600 / (config.p * config.k))
-        batch_num = int (3000 / (config.p * config.k))
+        batch_num = int (30000 / (config.p * config.k))
         # batch_num = 10
         for batchid in range(1, batch_num +1):
 
