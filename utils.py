@@ -17,7 +17,7 @@ import time
 import json
 import pickle
 from kMeans import cluster as cluster_1
-
+from torch.utils.data import DataLoader
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -160,19 +160,22 @@ def cluster(net, dataset, batch_size, net_num, outIter_num, config):
     '''
     avgpool = nn.AvgPool2d(7,7)
     net.eval()
-    if len(dataset) % batch_size == 0:
-        batch_num = len(dataset) / batch_size
-    else:
-        batch_num = int(len(dataset) / batch_size) + 1
-    
+
+    dataLoader = DataLoader(dataset=dataset,
+                                   batch_size=config.cluster_batch_size,
+                                   shuffle=False,
+                                   num_workers=config.num_workers,
+                                   drop_last=False)
+
     feat = np.zeros((len(dataset), 2048))
     image_name = []
     flag = 0
     print("==> compute feature using net{} , outIter {}".format(net_num, outIter_num))
     with torch.no_grad():
-        for i in tqdm(range(batch_num)):
-            images, path_list = dataset.next_batch(batch_size)
-            images = Variable(torch.stack(images).cuda())
+        for batch_id, data in enumerate(dataLoader):
+            images = data[0]
+            path_list = list(data[1])
+            images = Variable(images.cuda())
             # images = Variable(torch.Tensor(images).cuda())
             code, output = net(images)
             code = avgpool(code)
@@ -183,6 +186,7 @@ def cluster(net, dataset, batch_size, net_num, outIter_num, config):
             feat[flag:flag+tmp, :] = code.view(tmp,-1).detach().cpu().numpy()
             flag += tmp
             image_name.extend(path_list)
+            print("compute feature, picture num:{} batch :[{}|{}]".format(len(dataset), batch_id+1, len(dataLoader)))
     print('features have been extracted')
     print('Begin clustering')
     # TODO 聚类函数

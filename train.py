@@ -5,12 +5,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
-import torch.utils.data as data
+from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from model import encoder_decoder
 from utils import *
 # from dataloader import Imagenet_data
 from dataloader import data_loader
+from dataloader import myDataset, myDataset2, pkSampler
 
 
 import config
@@ -146,7 +147,12 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
         MSE_loss = AverageMeter()
         Tri_loss = AverageMeter()
 
-        sampler = pk_sampler(cluster_result, config.p, config.k, config)
+        # sampler = pk_sampler(cluster_result, config.p, config.k, config)
+        dataset = myDataset2(cluster_result, config)
+        dataloader = DataLoader(dataset=dataset,
+                                batch_sampler=pkSampler(cluster_result, config),
+                                num_workers=config.num_workers
+                                )
         criterion1 = nn.MSELoss()
         criterion2 = TripletLoss(config.margin)
         # 每次训练单个网络的时候根据epoch数目来跟新学习率
@@ -157,25 +163,20 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
         # batch_num = int (100 / (config.p * config.k))
         batch_num = int (30000 / (config.p * config.k))
         # batch_num = 10
-        for batchid in range(1, batch_num +1):
+        # for batchid in range(1, batch_num +1):
+        for batch_id, data in enumerate(dataloader):
 
-
+            images = data[0]
+            target = np.array(data[1]).reshape(-1, 1)
             end = time.time()
-            data, target = sampler.next_batch()
             data_time.update(time.time() - end)
-
-            data = Variable(torch.stack(data).cuda())
-
+            images = Variable(images.cuda())
             target = Variable(torch.Tensor(target).cuda())
-
-            code, output = net(data)
-
+            code, output = net(images)
             code = code.view(code.shape[0], -1)
-
-            loss1 = criterion1(data, output)
+            loss1 = criterion1(images, output)
             loss2, _ = criterion2(code, target)
             loss = lambda_1 * loss1 +lambda_2 * loss2
-
 
             optimizer.zero_grad()
             loss.backward()
@@ -186,7 +187,7 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
             # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
-            if batchid % 10 == 0:
+            if batch_id % 10 == 0:
                 print('net: {} '
                       'OutIter:{} '
                       'Epoch: [{}][{}/{}] '
@@ -201,6 +202,10 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
                       .format( net_num, _iter, _epoch, batchid, batch_num , current_lr, lambda_1, lambda_2, batch_time=batch_time,
                               data_time=data_time, train_loss=train_loss,
                                MSE_loss=MSE_loss, Tri_loss=Tri_loss))
+
+            if batch_id == batch_num:
+                break
+
 
         # 一定的batch_id存储模型
         if _epoch % config.save_epoch == 0:
@@ -233,9 +238,30 @@ def train(config):
     file_list = [ os.path.join(config.data_dir, x) for x in file_list]
     file_list_1 = np.random.choice(file_list, int(len(file_list)/2), replace=False)
     file_list_2 = [ x for x in file_list if x  not in file_list_1]
-    dataset_all = data_loader(file_list, config)
-    dataset_1 = data_loader(file_list_1, config)
-    dataset_2 = data_loader(file_list_2, config)
+    # dataset_all = data_loader(file_list, config)
+    # dataset_1 = data_loader(file_list_1, config)
+    # dataset_2 = data_loader(file_list_2, config)
+    dataset_all = myDataset(file_list, config)
+    dataset_1 = myDataset(file_list_1, config)
+    dataset_2 = myDataset(file_list_2, config)
+
+    # 配置训练的时候用的dataloader
+    # dataLoader_all = data.DataLoader(dataset=dataset_all,
+    #                                  batch_size=config.cluster_batch_size,
+    #                                  shuffle=False,
+    #                                  num_workers=config.num_workers,
+    #                                  drop_last=False)
+    # dataLoader_1 = data.DataLoader(dataset=dataset_1,
+    #                                batch_size=config.cluster_batch_size,
+    #                                shuffle=False,
+    #                                num_workers=config.num_workers,
+    #                                drop_last=False)
+    #
+    # dataLoader_2 = data.DataLoader(dataset=dataset_2,
+    #                                batch_size=config.cluster_batch_size,
+    #                                shuffle=False,
+    #                                num_workers=config.num_workers,
+    #                                drop_last=False)
 
     print('Dataset {} statistics:'.format(dataset))
     print('  ------------------------------')

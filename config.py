@@ -45,7 +45,7 @@ log_path = log_dir + "n_cluster_300.txt"
 
 epoch = 10
 # batch_size = 32  # training batch size
-workers = 4  # number of data loading workers
+num_workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 10
 gpu='0,1'  # visible gpu
