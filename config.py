@@ -18,9 +18,9 @@ transform_train = transforms.Compose([
     normalize,
 ])
 # data_dir = "data/"
-# data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
+data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
 # data_dir =  '/home/tsinghuaee09/01.Datasets_AML/debug_dataset'
-data_dir = 'data/debug_dataset'
+# data_dir = 'data/debug_dataset'
 
 # ----------------------------
 # config for trainer
@@ -37,20 +37,21 @@ if not os.path.exists(os.path.join(model_path, resume_net2)):
 
 margin = 1
 save_epoch = 10    # save model every 10 epoch
-log_path = "log/"   # log save path
-if not os.path.isdir(log_path):
-    os.makedirs(log_path)
+log_dir = "log/"   # log save path
+if not os.path.isdir(log_dir):
+    os.makedirs(log_dir)
+log_path = log_dir + "n_cluster_300.txt"
 
 
-epoch = 1
+epoch = 10
 # batch_size = 32  # training batch size
 workers = 4  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 10
-gpu='2'  # visible gpu
+gpu='0,1'  # visible gpu
 # lambda_1 = 0.5
 # lambda_2 = 0.5
-cluster_batch_size = 128
+cluster_batch_size = 256
 cluster_result_dir = "cluster_result/"
 if not os.path.isdir(cluster_result_dir):
     os.makedirs(cluster_result_dir)
@@ -58,14 +59,14 @@ if not os.path.isdir(cluster_result_dir):
 # debug setting
 # n_cluster = 10
 # run setting
-n_cluster = 100
+n_cluster = 300
 # ----------------------------
 # config for pk sample
 # 单张卡大概可以跑80张图（16G显存）
 # run setting
-# p = 16
-# k = 8
+p = 16
+k = 8
 
 # debug setting
-p = 2
-k = 5
+# p = 2
+# k = 5

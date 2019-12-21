@@ -154,8 +154,8 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
         current_lr = config.lr
 
         net.train()
-        batch_num = int (100 / (config.p * config.k))
-        # batch_num = int (30000 / (config.p * config.k))
+        # batch_num = int (100 / (config.p * config.k))
+        batch_num = int (30000 / (config.p * config.k))
         # batch_num = 10
         for batchid in range(1, batch_num +1):
 
@@ -224,7 +224,7 @@ def train(config):
     log_path = config.log_path
     checkpoint_path = config.model_path
     suffix = dataset
-    sys.stdout = Logger(log_path + suffix + '_os.txt')
+    sys.stdout = Logger(log_path)
     outIter = 1
     print('==> Loading data..')
     end = time.time()
