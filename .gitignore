@@ -109,3 +109,4 @@ data/
 log/
 save_model/
 cluster_result/
+save_model_n_cluster=100/
