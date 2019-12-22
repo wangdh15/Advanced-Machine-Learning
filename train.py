@@ -164,11 +164,12 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
         batch_num = int (30000 / (config.p * config.k))
         # batch_num = 10
         # for batchid in range(1, batch_num +1):
+        end = time.time()
         for batch_id, data in enumerate(dataloader):
 
             images = data[0]
+            # print("Batch Picture : {}".format(images.size(0)))
             target = np.array(data[1]).reshape(-1, 1)
-            end = time.time()
             data_time.update(time.time() - end)
             images = Variable(images.cuda())
             target = Variable(torch.Tensor(target).cuda())
@@ -181,9 +182,9 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            train_loss.update(loss.item(), data.size(0))
-            MSE_loss.update(loss1.item(), data.size(0))
-            Tri_loss.update(loss2.item(), data.size(0))
+            train_loss.update(loss.item(), data[0].size(0))
+            MSE_loss.update(loss1.item(), data[0].size(0))
+            Tri_loss.update(loss2.item(), data[0].size(0))
             # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
@@ -199,7 +200,7 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
                       'Loss: {train_loss.val:.4f} ({train_loss.avg:.4f}) '
                       'Loss_MSE: {MSE_loss.val:.4f} ({MSE_loss.avg:.4f}) '
                       'Loss_Tri: {Tri_loss.val:.4f} ({Tri_loss.avg:.4f}) '
-                      .format( net_num, _iter, _epoch, batchid, batch_num , current_lr, lambda_1, lambda_2, batch_time=batch_time,
+                      .format( net_num, _iter, _epoch, batch_id, batch_num , current_lr, lambda_1, lambda_2, batch_time=batch_time,
                               data_time=data_time, train_loss=train_loss,
                                MSE_loss=MSE_loss, Tri_loss=Tri_loss))
 

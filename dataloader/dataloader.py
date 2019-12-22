@@ -217,7 +217,7 @@ class pkSampler(Sampler):
         while True:
             batch = []
             cls_sampled  = np.random.choice(self.cls, size=self.p, replace=False)
-            for _cls in enumerate(cls_sampled):
+            for _, _cls in enumerate(cls_sampled):
                 if len(self.data_source[_cls]) < self.k:
                     data_sampled = np.random.choice(self.data_source[_cls], self.k, replace=True)
                 else:

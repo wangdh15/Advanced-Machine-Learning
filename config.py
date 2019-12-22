@@ -40,15 +40,15 @@ save_epoch = 10    # save model every 10 epoch
 log_dir = "log/"   # log save path
 if not os.path.isdir(log_dir):
     os.makedirs(log_dir)
-log_path = log_dir + "n_cluster_300.txt"
+log_path = log_dir + "n_cluster_300_2.txt"
 
 
 epoch = 10
 # batch_size = 32  # training batch size
-num_workers = 4  # number of data loading workers
+num_workers = 8  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 10
-gpu='0,1'  # visible gpu
+gpu='2,3'  # visible gpu
 # lambda_1 = 0.5
 # lambda_2 = 0.5
 cluster_batch_size = 256
