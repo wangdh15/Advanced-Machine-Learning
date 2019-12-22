@@ -231,14 +231,15 @@ def train(config):
     checkpoint_path = config.model_path
     suffix = dataset
     sys.stdout = Logger(log_path)
-    outIter = 1
+    outIter = 0
     print('==> Loading data..')
     end = time.time()
 
     file_list = os.listdir(config.data_dir)
     file_list = [ os.path.join(config.data_dir, x) for x in file_list]
     file_list_1 = np.random.choice(file_list, int(len(file_list)/2), replace=False)
-    file_list_2 = [ x for x in file_list if x  not in file_list_1]
+    # file_list_2 = [ x for x in file_list if x  not in file_list_1]
+    file_list_2 = list(set(file_list) - set(file_list_1))
     # dataset_all = data_loader(file_list, config)
     # dataset_1 = data_loader(file_list_1, config)
     # dataset_2 = data_loader(file_list_2, config)
@@ -285,7 +286,10 @@ def train(config):
         if os.path.isfile(model_path):
             print('==> loading checkpoint {}'.format(config.resume_net1))
             checkpoint = torch.load(model_path)
-            # outIter = checkpoint['outIter']
+            if 'outIter' in checkpoint.keys():
+                outIter = checkpoint['outIter']
+            else:
+                outIter = 0
             net1.load_state_dict(checkpoint['net'])
             print('==> loaded checkpoint {} (epoch {})'
                   .format(config.resume_net1, checkpoint['epoch']))
@@ -297,7 +301,10 @@ def train(config):
         if os.path.isfile(model_path):
             print('==> loading checkpoint {}'.format(config.resume_net2))
             checkpoint = torch.load(model_path)
-            # outIter = checkpoint['outIter']
+            if 'outIter' in checkpoint.keys():
+                outIter = checkpoint['outIter']
+            else:
+                outIter = 0
             net2.load_state_dict(checkpoint['net'])
             print('==> loaded checkpoint {} (epoch {})'
                   .format(config.resume_net2, checkpoint['epoch']))
@@ -314,7 +321,7 @@ def train(config):
 
     # training
     print('==> Start Training...')
-    for _iter in range(outIter, config.iter_num+1):
+    for _iter in range(outIter+1, config.iter_num+1):
         cluster_result = cluster(net1, dataset_2 , config.cluster_batch_size, 1, _iter, config)
         train_signal_model(net2, cluster_result, config, optimizer2, _iter, 2)
         cluster_result = cluster(net2, dataset_1, config.cluster_batch_size, 2, _iter, config)

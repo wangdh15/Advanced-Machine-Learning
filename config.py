@@ -28,10 +28,10 @@ lr = 0.001   # learning rate
 model_path = "save_model/"   # model save path
 if not os.path.isdir(model_path):
     os.makedirs(model_path)
-resume_net1 = 'miniImagenet_epoch_100.t'   # resume from checkpoint
+resume_net1 = '_net_1_outIter_4_epoch_10.t'   # resume from checkpoint
 if not os.path.exists(os.path.join(model_path, resume_net1)):
     resume_net1 = ""
-resume_net2 = 'miniImagenet_epoch_100.t'   # resume from checkpoint
+resume_net2 = '_net_2_outIter_4_epoch_10.t'   # resume from checkpoint
 if not os.path.exists(os.path.join(model_path, resume_net2)):
     resume_net2 = ""
 
@@ -48,7 +48,7 @@ epoch = 10
 num_workers = 8  # number of data loading workers
 np_random_seed = 0   # numpy random seed
 iter_num = 10
-gpu='2,3'  # visible gpu
+gpu='0,1'  # visible gpu
 # lambda_1 = 0.5
 # lambda_2 = 0.5
 cluster_batch_size = 256
