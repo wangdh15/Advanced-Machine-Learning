@@ -161,7 +161,7 @@ def train_signal_model(net, cluster_result, config, optimizer, _iter, net_num):
 
         net.train()
         # batch_num = int (100 / (config.p * config.k))
-        batch_num = int (30000 / (config.p * config.k))
+        batch_num = int (60000 / (config.p * config.k))
         # batch_num = 10
         # for batchid in range(1, batch_num +1):
         end = time.time()
@@ -326,6 +326,12 @@ def train(config):
         train_signal_model(net2, cluster_result, config, optimizer2, _iter, 2)
         cluster_result = cluster(net2, dataset_1, config.cluster_batch_size, 2, _iter, config)
         train_signal_model(net1, cluster_result, config, optimizer1, _iter, 1)
+    
+    cluster_result = cluster(net1, dataset_all , config.cluster_batch_size, 1, 11, config)
+    train_signal_model(net2, cluster_result, config, optimizer2, 11, 2)
+    
+    
+
 
 
 if __name__ == '__main__':

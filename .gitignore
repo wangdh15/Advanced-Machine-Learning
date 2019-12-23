@@ -111,4 +111,5 @@ save_model/
 cluster_result/
 save_model_n_cluster=100/
 save_model_n_cluster=300/
+auto_cluster_result/
 *nfs*
