@@ -17,6 +17,7 @@ import time
 import json
 import pickle
 from kMeans import cluster as cluster_1
+from kMeans import cluster_eval
 from torch.utils.data import DataLoader
 
 class AverageMeter(object):
@@ -191,16 +192,18 @@ def cluster(net, dataset, batch_size, net_num, outIter_num, config):
     print('Begin clustering')
     # TODO 聚类函数
     # n_cluster = 100
-    n_cluster = config.n_cluster
     end = time.time()
     # n_cluster = 10
     # ac = AgglomerativeClustering(n_clusters=n_cluster, affinity='euclidean', linkage='complete')
     # labels = ac.fit_predict(feat)
 
     data = torch.from_numpy(feat.astype(np.float32)).cuda()
+    n_cluster = cluster_eval(data)
+    # n_cluster = config.n_cluster
     centers, labels = cluster_1(data, n_cluster)
     labels = labels.detach().cpu().numpy()
     print('cluster end. time spend:{}'.format(time.time() - end))
+    print('cluster {} kind'.format(n_cluster))
     assert len(labels) == len(image_name)
     result = {}
     for i in range(len(labels)):
@@ -210,7 +213,7 @@ def cluster(net, dataset, batch_size, net_num, outIter_num, config):
              result[labels[i]].append(image_name[i])
 #     result = {1:['data/n0441835700000007.jpg', 'data/n0441835700000015.jpg'],
 #               2:['data/n0441835700000115.jpg', 'data/n0441835700000115.jpg']}
-
+    # result['cluster_num'] = n_cluster
     with open(os.path.join(config.cluster_result_dir, 'cluster_result_{}_{}.json'.format(net_num, outIter_num)), 'wb') as f:
         pickle.dump(result, f)
     print('cluster result is saved to cluster_result_{}_{}.json'.format(net_num, outIter_num))

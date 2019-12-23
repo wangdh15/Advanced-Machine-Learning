@@ -4,7 +4,8 @@ import random
 import sys
 import time
 import os
-from sklearn.metrics import calinski_harabaz_score as CH_score
+# from sklearn.metrics import calinski_harabaz_score as CH_score
+from sklearn.metrics import calinski_harabasz_score as CH_score
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 device_gpu = torch.device('cuda')
@@ -95,12 +96,14 @@ def cluster(dataset, num_centers):
 
 def cluster_eval(features):
     scores = []
+    features_cpu = features.detach().cpu().numpy()
     n_clusters = list(range(50, 300, 30))
     for n_cluster in n_clusters:
         centers, labels = cluster(features, n_cluster)
-        features = features.detach().cpu().numpy()
-        score = CH_score(features, labels)
+        labels_cpu = labels.detach().cpu().numpy()
+        score = CH_score(features_cpu, labels_cpu)
         scores.append(score)
+        print("cluster num:{} cluster num:{}".format(n_cluster, score))
     scores = np.array(scores)
     return n_clusters[np.argmax(scores)]
     

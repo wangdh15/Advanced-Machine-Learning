@@ -25,14 +25,16 @@ data_dir =  '/home/tsinghuaee09/01.Datasets_AML/images'
 # ----------------------------
 # config for trainer
 lr = 0.001   # learning rate
-# model_path = "save_model/"   # model save path
-model_path = "/home/tsinghuaee09/wangdh/Advanced-Machine-Learning/save_model_n_cluster=100/"
+model_path = "save_model/"   # model save path
+# model_path = "/home/tsinghuaee09/wangdh/Advanced-Machine-Learning/save_model_n_cluster=100/"
 if not os.path.isdir(model_path):
     os.makedirs(model_path)
-resume_net1 = '_net_1_outIter_10_epoch_10.t'   # resume from checkpoint
+# resume_net1 = '_net_1_outIter_10_epoch_10.t'   # resume from checkpoint
+resume_net1 = 'miniImagenet_epoch_100.t'   # resume from checkpoint
 if not os.path.exists(os.path.join(model_path, resume_net1)):
     resume_net1 = ""
-resume_net2 = '_net_2_outIter_10_epoch_10.t'   # resume from checkpoint
+# resume_net2 = '_net_2_outIter_10_epoch_10.t'   # resume from checkpoint
+resume_net2 = 'miniImagenet_epoch_100.t'   # resume from checkpoint
 if not os.path.exists(os.path.join(model_path, resume_net2)):
     resume_net2 = ""
 
@@ -41,7 +43,7 @@ save_epoch = 10    # save model every 10 epoch
 log_dir = "log/"   # log save path
 if not os.path.isdir(log_dir):
     os.makedirs(log_dir)
-log_path = log_dir + "n_cluster_300_2.txt"
+log_path = log_dir + "auto_cluster.txt"
 
 
 epoch = 10
@@ -53,7 +55,7 @@ gpu='2,3'  # visible gpu
 # lambda_1 = 0.5
 # lambda_2 = 0.5
 cluster_batch_size = 256
-cluster_result_dir = "cluster_result/"
+cluster_result_dir = "auto_cluster_result/"
 if not os.path.isdir(cluster_result_dir):
     os.makedirs(cluster_result_dir)
 
